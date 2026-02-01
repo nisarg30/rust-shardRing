@@ -1,0 +1,11 @@
+[package]
+name = "rust-data-distribution"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+threadpool = { version = "1.8.1"}
+heapless = { version = "0.9" }
+hashbrown = { version = "0.16" }
+bytes = { version = "1.11.0"}
+memmap2 = { version = "0.9.9" }

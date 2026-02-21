@@ -39,7 +39,7 @@ pub struct RingSlot<T>
 where
     T: Send + Sync + 'static,
 {
-    pub seq: AtomicU64,
+    pub seq: u64,
     pub data: T,
 }
 
@@ -53,13 +53,19 @@ where
 }
 
 #[repr(C)]
-pub struct SeqSlot<T> {
-    pub seq: AtomicU64,
+pub struct SeqSlot<T>
+where
+    T: Send + Sync + 'static,
+{
+    pub seq: u64,
     pub data: T,
 }
 
 #[repr(C)]
-pub struct MultiSeqLock<T> {
+pub struct MultiSeqLock<T>
+where
+    T: Send + Sync + 'static,
+{
     pub write_seq: AtomicU64,
     pub slots: [SeqSlot<T>; SEQ_SLOTS],
 }
@@ -74,7 +80,10 @@ where
 }
 
 #[repr(C)]
-pub struct LatestShmLayout<T> {
+pub struct LatestShmLayout<T>
+where
+    T: Send + Sync + 'static,
+{
     pub header: ShmHeader,
     pub seqlock: MultiSeqLock<T>,
 }
@@ -87,6 +96,9 @@ where
     Latest { seqlock: NonNull<MultiSeqLock<T>> },
 }
 
+unsafe impl<T> Send for InstrumentStorage<T> where T: Send + Sync + 'static {}
+unsafe impl<T> Sync for InstrumentStorage<T> where T: Send + Sync + 'static {}
+
 pub struct InstrumentEntry<T>
 where
     T: Send + Sync + 'static,
@@ -96,4 +108,13 @@ where
     pub storage: InstrumentStorage<T>,
 }
 
+unsafe impl<T> Send for InstrumentEntry<T> where T: Send + Sync + 'static {}
+unsafe impl<T> Sync for InstrumentEntry<T> where T: Send + Sync + 'static {}
+
 pub type InstrumentMap<T> = HashMap<i64, InstrumentEntry<T>>;
+
+pub struct RegisterTokenPayload {
+    pub token: i64,
+    pub shard: usize,
+    pub mode: InstrumentMode,
+}
